@@ -2,6 +2,7 @@ name: deploy-bicep-test
 concurrency: bicep-test
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
