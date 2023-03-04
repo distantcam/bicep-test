@@ -1,0 +1,40 @@
+name: deploy-bicep-test
+concurrency: bicep-test
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  # Lint the Bicep file.
+  lint:
+    uses: ./.github/workflows/lint.yml
+
+  # Deploy to the test environment.
+  deploy-test:
+    uses: ./.github/workflows/deploy.yml
+    needs: lint
+    with:
+      environmentType: Test
+      resourceGroupName: BicepTest
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_TEST }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+  # Deploy to the production environment.
+  deploy-production:
+    uses: ./.github/workflows/deploy.yml
+    needs: deploy-test
+    with:
+      environmentType: Production
+      resourceGroupName: BicepProd
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_PRODUCTION }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
