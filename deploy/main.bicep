@@ -61,7 +61,7 @@ module bilby 'dns.bicep' = {
 }
 
 resource staticWebApplicationDomain 'Microsoft.Web/staticSites/customDomains@2022-03-01' = {
-    name: environmentConfigurationMap[environmentType].fqdn
+    name: '${environmentConfigurationMap[environmentType].cname}.bilby.social'
     parent: staticWebApplication
 }
 
