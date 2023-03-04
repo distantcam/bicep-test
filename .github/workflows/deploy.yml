@@ -89,7 +89,6 @@ jobs:
           template: ./deploy/main.bicep
           parameters: environmentType=${{ inputs.environmentType }}
       - uses: azure/arm-deploy@v1
-        id: deploy
         name: Deploy custom dns Bicep file
         with:
           failOnStdErr: false
