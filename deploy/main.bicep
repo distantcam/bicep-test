@@ -19,7 +19,8 @@ var staticWebAppName = 'test-swa-${resourceNameSuffix}'
 // Define the SKUs for each component based on the environment type.
 var environmentConfigurationMap = {
     Production: {
-        fqdn: 'bicep.tld'
+        cname: 'bicep'
+        fqdn: 'bicep.bilby.social'
         staticWebApp: {
             sku: {
                 name: 'Standard'
@@ -28,7 +29,8 @@ var environmentConfigurationMap = {
         }
     }
     Test: {
-        fqdn: 'test.bicep.tld'
+        cname: 'test-bc'
+        fqdn: 'test-bc.bilby.social'
         staticWebApp: {
             sku: {
                 name: 'Free'
@@ -52,16 +54,12 @@ resource staticWebApplication 'Microsoft.Web/staticSites@2022-03-01' = {
     tags: resourceGroup().tags
 }
 
-resource dnsZone 'Microsoft.Network/dnsZones@2018-05-01' = {
-    name: dnsName
-    location: 'global'
-    properties: {
-        zoneType: 'Public'
-    }
+resource dnsZone 'Microsoft.Network/dnsZones@2018-05-01' existing = {
+    name: 'bilby.social'
 }
 
 resource cname 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = {
-    name: toLower(environmentType)
+    name: environmentConfigurationMap[environmentType].cname
     parent: dnsZone
     properties: {
         TTL: 3600
