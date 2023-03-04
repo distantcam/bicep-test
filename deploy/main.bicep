@@ -13,12 +13,13 @@ param environmentType string
 param resourceNameSuffix string = uniqueString(resourceGroup().id)
 
 // Define the names for resources.
+var dnsName = 'bicep.tld'
 var staticWebAppName = 'test-swa-${resourceNameSuffix}'
 
 // Define the SKUs for each component based on the environment type.
 var environmentConfigurationMap = {
     Production: {
-        fqdn: 'bicep.bilby.social'
+        fqdn: 'bicep.tld'
         staticWebApp: {
             sku: {
                 name: 'Standard'
@@ -27,7 +28,7 @@ var environmentConfigurationMap = {
         }
     }
     Test: {
-        fqdn: 'test.bicep.bilby.social'
+        fqdn: 'test.bicep.tld'
         staticWebApp: {
             sku: {
                 name: 'Free'
@@ -49,6 +50,25 @@ resource staticWebApplication 'Microsoft.Web/staticSites@2022-03-01' = {
         tier: environmentConfigurationMap[environmentType].staticWebApp.sku.tier
     }
     tags: resourceGroup().tags
+}
+
+resource dnsZone 'Microsoft.Network/dnsZones@2018-05-01' = {
+    name: dnsName
+    location: 'global'
+    properties: {
+        zoneType: 'Public'
+    }
+}
+
+resource cname 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = {
+    name: toLower(environmentType)
+    parent: dnsZone
+    properties: {
+        TTL: 3600
+        CNAMERecord: {
+            cname: staticWebApplication.properties.defaultHostname
+        }
+    }
 }
 
 resource staticWebApplicationDomain 'Microsoft.Web/staticSites/customDomains@2022-03-01' = {
