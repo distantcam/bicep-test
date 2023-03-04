@@ -13,14 +13,12 @@ param environmentType string
 param resourceNameSuffix string = uniqueString(resourceGroup().id)
 
 // Define the names for resources.
-var dnsName = 'bicep.tld'
 var staticWebAppName = 'test-swa-${resourceNameSuffix}'
 
 // Define the SKUs for each component based on the environment type.
 var environmentConfigurationMap = {
     Production: {
         cname: 'bicep'
-        fqdn: 'bicep.bilby.social'
         staticWebApp: {
             sku: {
                 name: 'Standard'
@@ -30,7 +28,6 @@ var environmentConfigurationMap = {
     }
     Test: {
         cname: 'test-bc'
-        fqdn: 'test-bc.bilby.social'
         staticWebApp: {
             sku: {
                 name: 'Free'
@@ -54,18 +51,12 @@ resource staticWebApplication 'Microsoft.Web/staticSites@2022-03-01' = {
     tags: resourceGroup().tags
 }
 
-resource dnsZone 'Microsoft.Network/dnsZones@2018-05-01' existing = {
-    name: 'bilby.social'
-}
-
-resource cname 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = {
-    name: environmentConfigurationMap[environmentType].cname
-    parent: dnsZone
-    properties: {
-        TTL: 3600
-        CNAMERecord: {
-            cname: staticWebApplication.properties.defaultHostname
-        }
+module bilby 'dns.bicep' = {
+    name: 'bilbyDns'
+    scope: resourceGroup('bilby-group')
+    params: {
+        cname: environmentConfigurationMap[environmentType].cname
+        hostname: staticWebApplication.properties.defaultHostname
     }
 }
 
