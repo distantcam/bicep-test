@@ -21,7 +21,7 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: lint
     with:
-      environmentType: Test
+      environmentType: test
       resourceGroupName: BicepTest
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -33,7 +33,7 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     needs: deploy-test
     with:
-      environmentType: Production
+      environmentType: prod
       resourceGroupName: BicepProd
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}

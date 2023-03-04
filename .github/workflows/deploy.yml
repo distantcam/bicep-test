@@ -30,20 +30,38 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - if: inputs.environmentType != 'Production'
         uses: azure/arm-deploy@v1
-        name: Run preflight validation
+        name: Run main preflight validation
         with:
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ inputs.resourceGroupName }}
           template: ./deploy/main.bicep
           parameters: environmentType=${{ inputs.environmentType }}
           deploymentMode: Validate
+      - if: inputs.environmentType != 'Production'
+        uses: azure/arm-deploy@v1
+        name: Run custom dns preflight validation
+        with:
+          deploymentName: ${{ github.run_number }}
+          resourceGroupName: ${{ inputs.resourceGroupName }}
+          template: ./deploy/custom-dns.bicep
+          parameters: environmentType=${{ inputs.environmentType }}
+          deploymentMode: Validate
       - if: inputs.environmentType == 'Production'
         uses: azure/arm-deploy@v1
-        name: Run what-if
+        name: Run main what-if
         with:
           failOnStdErr: false
           resourceGroupName: ${{ inputs.resourceGroupName }}
           template: ./deploy/main.bicep
+          parameters: environmentType=${{ inputs.environmentType }}
+          additionalArguments: --what-if
+      - if: inputs.environmentType == 'Production'
+        uses: azure/arm-deploy@v1
+        name: Run custom dns what-if
+        with:
+          failOnStdErr: false
+          resourceGroupName: ${{ inputs.resourceGroupName }}
+          template: ./deploy/custom-dns.bicep
           parameters: environmentType=${{ inputs.environmentType }}
           additionalArguments: --what-if
 
@@ -63,12 +81,21 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - uses: azure/arm-deploy@v1
         id: deploy
-        name: Deploy Bicep file
+        name: Deploy main Bicep file
         with:
           failOnStdErr: false
           deploymentName: ${{ github.run_number }}
           resourceGroupName: ${{ inputs.resourceGroupName }}
           template: ./deploy/main.bicep
+          parameters: environmentType=${{ inputs.environmentType }}
+      - uses: azure/arm-deploy@v1
+        id: deploy
+        name: Deploy custom dns Bicep file
+        with:
+          failOnStdErr: false
+          deploymentName: ${{ github.run_number }}
+          resourceGroupName: ${{ inputs.resourceGroupName }}
+          template: ./deploy/custom-dns.bicep
           parameters: environmentType=${{ inputs.environmentType }}
 
   smoke-test:

@@ -13,3 +13,5 @@ jobs:
       - name: Lint code
         run: |
           az bicep build --file deploy/main.bicep
+          az bicep build --file deploy/dns.bicep
+          az bicep build --file deploy/custom-dns.bicep
